@@ -10,11 +10,5 @@ service : {
     }
   ) -> (record { public_key : blob });
   vetkd_encrypted_key : (
-    record {
-      public_key_derivation_path : vec blob;
-      derivation_id : blob;
-      key_id : record { curve : vetkd_curve; name : text };
-      encryption_public_key : blob;
-    }
-  ) -> (record { encrypted_key : blob });
+  ) -> ();
 };

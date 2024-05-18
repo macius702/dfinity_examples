@@ -2,6 +2,12 @@
 keywords: [advanced, rust, vetkeys, vetkd]
 ---
 
+
+# Project Overview
+
+This project was utilized by Matiki primarily for its randomness generation feature. There were issues encountered with the randomness in Hacker Night, and the cause was not immediately clear. By dissecting this project layer by layer, much like peeling an onion, the functioning randomness generation was isolated. This deep dive into the project's randomness helped resolve the issues with Hacker Night's randomness.
+
+
 # vetKD API
 
 [View this sample's code on GitHub](https://github.com/dfinity/examples/tree/master/rust/vetkd)
