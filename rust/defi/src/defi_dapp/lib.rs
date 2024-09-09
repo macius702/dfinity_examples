@@ -35,16 +35,29 @@ pub struct State {
 #[update]
 #[candid_method(update)]
 pub async fn deposit(token_canister_id: Principal) -> DepositReceipt {
+    ic_cdk::println!("Token canister id: {:#?}", token_canister_id.to_text());
+
     let caller = caller();
+    ic_cdk::println!("Caller: {:#?}", caller.to_text());
+
+    ic_cdk::println!("MAINNET_LEDGER_CANISTER_ID        : {:#?}", MAINNET_LEDGER_CANISTER_ID.to_text());
+
     let ledger_canister_id = STATE
         .with(|s| s.borrow().ledger)
         .unwrap_or(MAINNET_LEDGER_CANISTER_ID);
+    ic_cdk::println!("ledger_canister_id    : {:#?}", ledger_canister_id.to_text());
 
     let amount = if token_canister_id == ledger_canister_id {
+        ic_cdk::println!("deposit_icp start");
         deposit_icp(caller).await?
     } else {
+        ic_cdk::println!("deposit_token start");
         deposit_token(caller, token_canister_id).await?
     };
+
+    ic_cdk::println!("deposit done");
+
+
     STATE.with(|s| {
         s.borrow_mut()
             .exchange
@@ -56,16 +69,22 @@ pub async fn deposit(token_canister_id: Principal) -> DepositReceipt {
 
 async fn deposit_icp(caller: Principal) -> Result<Nat, DepositErr> {
     let canister_id = ic_cdk::api::id();
+    ic_cdk::println!("canister_id: {:#?}", canister_id.to_text());
+
     let ledger_canister_id = STATE
         .with(|s| s.borrow().ledger)
         .unwrap_or(MAINNET_LEDGER_CANISTER_ID);
+    ic_cdk::println!("ledger_canister_id: {:#?}", ledger_canister_id.to_text());
 
     let account = AccountIdentifier::new(&canister_id, &principal_to_subaccount(&caller));
+    ic_cdk::println!("account: {:?}", account.to_string());
 
     let balance_args = ic_ledger_types::AccountBalanceArgs { account };
+    ic_cdk::println!("balance_args: {:?}", balance_args);
     let balance = ic_ledger_types::account_balance(ledger_canister_id, balance_args)
         .await
         .map_err(|_| DepositErr::TransferFailure)?;
+    ic_cdk::println!("balance: {:#?}", balance);
 
     if balance.e8s() < ICP_FEE {
         return Err(DepositErr::BalanceLow);
@@ -79,6 +98,8 @@ async fn deposit_icp(caller: Principal) -> Result<Nat, DepositErr> {
         to: AccountIdentifier::new(&canister_id, &DEFAULT_SUBACCOUNT),
         created_at_time: None,
     };
+    ic_cdk::println!("transfer_args: {:?}", transfer_args);
+
     ic_ledger_types::transfer(ledger_canister_id, transfer_args)
         .await
         .map_err(|_| DepositErr::TransferFailure)?
@@ -87,19 +108,43 @@ async fn deposit_icp(caller: Principal) -> Result<Nat, DepositErr> {
     ic_cdk::println!(
         "Deposit of {} ICP in account {:?}",
         balance - Tokens::from_e8s(ICP_FEE),
-        &account
+        &account.to_string()
     );
 
     Ok((balance.e8s() - ICP_FEE).into())
 }
 
+use std::fmt;
+
+impl fmt::Debug for DIP20 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "DIP20 {{ principal }}")
+    }
+}
+
 async fn deposit_token(caller: Principal, token: Principal) -> Result<Nat, DepositErr> {
+    ic_cdk::println!("arg token: {:#?}", token.to_text());
     let token = DIP20::new(token);
+    ic_cdk::println!("new token: {:?}", token);
+
     let dip_fee = token.get_metadata().await.fee;
+    ic_cdk::println!("dip_fee: {:#?}", dip_fee);
 
     let allowance = token.allowance(caller, ic_cdk::api::id()).await;
+    ic_cdk::println!("allowance: {:#?}", allowance);
 
     let available = allowance - dip_fee;
+    ic_cdk::println!("available: {:#?}", available);
+
+    // ic_cdk::println!(
+    //     "Deposit of {} tokens in account {:?}",
+    //     available, &caller.to_text()
+    // );
+
+    ic_cdk::println!("Transferring from caller: {:#?}", caller.to_text());
+    ic_cdk::println!("Transferring to target canister_id: {:#?}", ic_cdk::api::id().to_text());
+    ic_cdk::println!("Transferring amount: {:#?}", available.to_owned());
+    
 
     token
         .transfer_from(caller, ic_cdk::api::id(), available.to_owned())

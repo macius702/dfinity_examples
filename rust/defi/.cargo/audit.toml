@@ -1,0 +1,12 @@
+[advisories]
+ignore = [
+    "RUSTSEC-2024-0344",  # Example ID for curve25519-dalek vulnerability
+    "RUSTSEC-2023-0071",  # Example ID for rsa vulnerability
+    "RUSTSEC-2023-0018",
+    "RUSTSEC-2021-0145",
+
+
+
+]
+
+

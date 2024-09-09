@@ -1,3 +1,15 @@
+# Matiki
+
+make install
+run frontent in browser 
+Logout
+Login creating II
+    Copy II Principal i.e. iaevi-dyoo4-luiyx-whh72-4hilh-jpje5-okqjx-pakr2-jn7eb-wum2l-sqe
+make init-local II_PRINCIPAL=iaevi-dyoo4-luiyx-whh72-4hilh-jpje5-okqjx-pakr2-jn7eb-wum2l-sqe # to feed my account from minter
+    Refresh in browser - should be 10,000,000 in my 3 accounts (AKI, GLD, ICP)
+
+
+
 # Decentralized exchange (DEX) sample
 
 ## Overview
